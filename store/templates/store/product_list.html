@@ -1,0 +1,10 @@
+{% for product in products %}
+<div>
+    <h3>{{ product.name }}</h3>
+    <p>{{ product.price }} ₽</p>
+    <form action="{% url 'orders:cart_add' product.id %}" method="post">
+        {% csrf_token %}
+        <button type="submit">В корзину</button>
+    </form>
+</div>
+{% endfor %}

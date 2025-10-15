@@ -1,0 +1,215 @@
+{% extends "base.html" %}
+{% block content %}
+<h2 class="mb-4">Корзина</h2>
+
+<style>
+    .quantity-controls {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    
+    .quantity-btn {
+        width: 28px;
+        height: 28px;
+        border: 1px solid #ddd;
+        background: white;
+        border-radius: 4px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        font-weight: bold;
+        font-size: 14px;
+    }
+    
+    .quantity-btn:hover {
+        background: #f8f9fa;
+        border-color: #ff6a00;
+        color: #ff6a00;
+    }
+    
+    .quantity-input {
+        width: 45px;
+        text-align: center;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        padding: 3px;
+        font-weight: 500;
+    }
+    
+    .updating {
+        opacity: 0.6;
+        pointer-events: none;
+    }
+</style>
+
+<table class="table table-striped table-hover align-middle">
+    <thead>
+        <tr>
+            <th>Товар</th>
+            <th>Цена</th>
+            <th>Кол-во</th>
+            <th>Итого</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for item in cart %}
+        <tr id="item-{{ item.product.id }}">
+            <td>{{ item.product.name }}</td>
+            <td>{{ item.price }} ₽</td>
+            <td>
+                <div class="quantity-controls">
+                    <button class="quantity-btn" onclick="updateQuantity({{ item.product_id }}, -1)">-</button>
+                    <input type="number" class="quantity-input" id="qty-{{ item.product_id }}" 
+                           value="{{ item.quantity }}" min="1" max="99" readonly>
+                    <button class="quantity-btn" onclick="updateQuantity({{ item.product_id }}, 1)">+</button>
+                </div>
+            </td>
+            <td id="total-{{ item.product.id }}">{{ item.total_price }} ₽</td>
+            <td>
+                <a href="{% url 'orders:cart_remove' item.product_id %}" class="btn">
+                    <i class="fa-solid fa-xmark"></i>
+                </a>
+
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<div class="cart-total" style="font-size: 18px; float: right;">
+    Общая сумма: <strong id="cart-total-price">{{ total_price }} ₽</strong>
+</div>
+
+<!-- Промокод -->
+<div style="margin: 20px 0; padding: 15px; background: #f8f9fa; border-radius: 8px;">
+    <h5>💎 Промокод</h5>
+    <div class="input-group" style="max-width: 300px;">
+        <input type="text" id="promoCode" class="form-control" placeholder="Введите промокод">
+        <button class="btn btn-outline-secondary" onclick="applyPromoCode()">Применить</button>
+    </div>
+    <div id="promoMessage" style="margin-top: 10px; font-size: 14px;"></div>
+    
+    {% if cart.promo_code %}
+    <div style="margin-top: 10px;">
+        <span class="text-success">✅ Применен промокод: {{ cart.promo_code.code }} (-{{ cart.promo_code.discount }}%)</span>
+        <button class="btn btn-sm btn-link text-danger" onclick="removePromoCode()">Удалить</button>
+    </div>
+    {% endif %}
+</div>
+
+<a href="{% url 'orders:order_create' %}" class="btn">
+    Оформить заказ
+</a>
+
+<script>
+function updateQuantity(productId, change) {
+    console.log('Updating product:', productId, 'change:', change);
+    
+    const input = document.getElementById('qty-' + productId);
+    const currentQty = parseInt(input.value);
+    let newQty = currentQty + change;
+    
+    if (newQty < 1) newQty = 1;
+    
+    const row = document.getElementById('item-' + productId);
+    row.classList.add('updating');
+    
+    // Используем правильный URL с namespace
+    fetch("{% url 'orders:cart_update' 0 %}".replace('0', productId), {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'X-CSRFToken': '{{ csrf_token }}'
+        },
+        body: 'quantity=' + newQty
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Network response was not ok');
+        }
+        return response.json();
+    })
+    .then(data => {
+        if (data.success) {
+            input.value = data.quantity;
+            document.getElementById('total-' + productId).textContent = data.item_total + ' ₽';
+            document.getElementById('cart-total-price').textContent = data.total_price + ' ₽';
+        } else {
+            console.error('Server error:', data.error);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Ошибка при обновлении количества');
+    })
+    .finally(() => {
+        row.classList.remove('updating');
+    });
+}
+
+
+function applyPromoCode() {
+    const code = document.getElementById('promoCode').value;
+    const messageDiv = document.getElementById('promoMessage');
+    
+    if (!code) {
+        messageDiv.innerHTML = '<span class="text-danger">Введите промокод</span>';
+        return;
+    }
+    
+    fetch("{% url 'orders:apply_promo' %}", {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'X-CSRFToken': '{{ csrf_token }}'
+        },
+        body: 'code=' + encodeURIComponent(code)
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            messageDiv.innerHTML = '<span class="text-success">' + data.message + '</span>';
+            // ОБНОВЛЯЕМ СУММУ НА СТРАНИЦЕ
+            document.getElementById('cart-total-price').textContent = data.new_total.toFixed(2) + ' ₽';
+            
+            // Показываем информацию о скидке
+            const discountInfo = `
+                <div class="text-success mt-2">
+                    ✅ Применена скидка ${data.discount}% 
+                    (Экономия: ${(data.original_total - data.new_total).toFixed(2)} ₽)
+                </div>
+            `;
+            messageDiv.innerHTML += discountInfo;
+            
+        } else {
+            messageDiv.innerHTML = '<span class="text-danger">' + data.message + '</span>';
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        messageDiv.innerHTML = '<span class="text-danger">Ошибка при применении промокода</span>';
+    });
+}
+function removePromoCode() {
+    fetch("{% url 'orders:remove_promo' %}", {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'X-CSRFToken': '{{ csrf_token }}'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            document.getElementById('cart-total-price').textContent = data.new_total.toFixed(2) + ' ₽';
+            location.reload();
+        }
+    });
+}
+</script>
+
+{% endblock %}

@@ -1,0 +1,492 @@
+{% extends "base.html" %}
+{% block title %}Главная - Огонь Жизни{% endblock %}
+
+{% block content %}
+<style>
+    /* === ОСНОВНЫЕ СТИЛИ === */
+    .hero-section {
+        background: linear-gradient(135deg, #fff6e9 0%, #ffedd1 100%);
+        padding: 6rem 1rem;
+        text-align: center;
+        border-radius: 24px;
+        margin: 2rem 0;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .hero-section::before {
+        content: '';
+        position: absolute;
+        top: -30%;
+        right: -5%;
+        width: 400px;
+        height: 400px;
+        background: radial-gradient(circle, #ffb347 0%, transparent 70%);
+        opacity: 0.2;
+        border-radius: 50%;
+    }
+
+    .hero-section::after {
+        content: '';
+        position: absolute;
+        bottom: -20%;
+        left: -5%;
+        width: 300px;
+        height: 300px;
+        background: radial-gradient(circle, #ff8c00 0%, transparent 70%);
+        opacity: 0.15;
+        border-radius: 50%;
+    }
+
+    .hero-title {
+        font-size: 4rem;
+        font-weight: 800;
+        color: #ff6a00;
+        margin-bottom: 1.5rem;
+        letter-spacing: -1px;
+        text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .hero-subtitle {
+        font-size: 1.4rem;
+        color: #666;
+        margin-bottom: 3rem;
+        max-width: 700px;
+        margin-left: auto;
+        margin-right: auto;
+        line-height: 1.7;
+    }
+
+    .cta-button {
+        display: inline-block;
+        background: linear-gradient(135deg, #ff6a00 0%, #ff8c00 100%);
+        color: white !important;
+        padding: 1.2rem 3rem;
+        border-radius: 50px;
+        text-decoration: none;
+        font-weight: 700;
+        font-size: 1.2rem;
+        transition: all 0.4s ease;
+        box-shadow: 0 6px 20px rgba(255, 106, 0, 0.3);
+        border: none;
+        cursor: pointer;
+        position: relative;
+        z-index: 1;
+    }
+
+    .cta-button:hover {
+        transform: translateY(-3px) scale(1.05);
+        box-shadow: 0 10px 30px rgba(255, 106, 0, 0.5);
+        color: white !important;
+    }
+
+    /* === СЕКЦИИ === */
+    .section {
+        padding: 5rem 0;
+        text-align: center;
+    }
+
+    .section-title {
+        font-size: 3rem;
+        font-weight: 800;
+        color: #333;
+        margin-bottom: 3rem;
+        position: relative;
+    }
+
+    .section-title::after {
+        content: '';
+        display: block;
+        width: 80px;
+        height: 5px;
+        background: linear-gradient(90deg, #ff6a00, #ffb347);
+        margin: 1.5rem auto;
+        border-radius: 3px;
+    }
+
+    /* === КАРТОЧКИ === */
+    .features-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+        gap: 2.5rem;
+        margin-top: 3rem;
+    }
+
+    .feature-card {
+        background: white;
+        padding: 3rem 2rem;
+        border-radius: 24px;
+        text-align: center;
+        transition: all 0.4s ease;
+        border: 2px solid transparent;
+        box-shadow: 0 8px 30px rgba(255, 165, 0, 0.1);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .feature-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: linear-gradient(90deg, #ff6a00, #ffb347);
+    }
+
+    .feature-card:hover {
+        transform: translateY(-10px) scale(1.02);
+        box-shadow: 0 20px 50px rgba(255, 165, 0, 0.2);
+        border-color: #ff6a00;
+    }
+
+    .feature-icon {
+        font-size: 4rem;
+        margin-bottom: 2rem;
+        color: #ff6a00;
+        background: linear-gradient(135deg, #fff0e0 0%, #ffe4cc 100%);
+        width: 100px;
+        height: 100px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-left: auto;
+        margin-right: auto;
+        transition: all 0.3s ease;
+    }
+
+    .feature-card:hover .feature-icon {
+        transform: scale(1.1) rotate(5deg);
+    }
+
+    .feature-title {
+        font-size: 1.7rem;
+        font-weight: 700;
+        color: #333;
+        margin-bottom: 1.2rem;
+    }
+
+    .feature-text {
+        color: #666;
+        line-height: 1.7;
+        font-size: 1.1rem;
+    }
+
+    /* === КАТЕГОРИИ === */
+    .categories-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 2rem;
+    }
+
+    .category-card {
+        background: white;
+        padding: 2.5rem 2rem;
+        border-radius: 20px;
+        text-align: center;
+        transition: all 0.4s ease;
+        border: 2px solid #ffe4cc;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .category-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+        transition: left 0.6s ease;
+    }
+
+    .category-card:hover::before {
+        left: 100%;
+    }
+
+    .category-card:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 15px 40px rgba(255, 165, 0, 0.15);
+        border-color: #ff6a00;
+    }
+
+    /* === ПОПУЛЯРНЫЕ ТОВАРЫ === */
+    .products-section {
+    padding: 2rem 0;
+}
+
+.products-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 1.5rem;
+    margin-top: 1.5rem;
+}
+
+.product-card {
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    /* Убираем фиксированную высоту карточки */
+    min-height: 320px;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.product-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+}
+
+.product-image {
+    height: 140px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #f8f9fa;
+    overflow: hidden;
+}
+
+.product-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.product-content {
+    padding: 1rem;
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+    /* Убираем фиксированную высоту контента */
+}
+
+.product-title {
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    color: #333;
+    line-height: 1.3;
+    /* Убираем ограничение строк для заголовка */
+}
+
+.product-description {
+    font-size: 0.85rem;
+    color: #666;
+    line-height: 1.4;
+    margin-bottom: 0.75rem;
+    flex-grow: 1;
+    /* Убираем ограничение строк для описания */
+}
+
+.product-price {
+    font-size: 1.1rem;
+    font-weight: bold;
+    color: #e74c3c;
+    margin-bottom: 0.75rem;
+}
+
+.product-button {
+    display: block;
+    width: 100%;
+    padding: 0.6rem;
+    background-color: #ff6a00;
+    color: white;
+    text-align: center;
+    text-decoration: none;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    transition: background-color 0.3s;
+    border: none;
+    cursor: pointer;
+    /* Фиксируем кнопку внизу */
+    margin-top: auto;
+}
+
+.product-button:hover {
+    background-color: #ff6a00da; /* Темно-зеленый при наведении */
+    color: white;
+    text-decoration: none;
+}
+
+
+/* Адаптивность для мобильных */
+@media (max-width: 768px) {
+    .products-grid {
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        gap: 1rem;
+    }
+    
+    .product-card {
+        height: 300px;
+    }
+    
+    .product-image {
+        height: 120px;
+    }
+    
+    .product-content {
+        height: 180px;
+        padding: 0.75rem;
+    }
+}
+
+    /* === СТАТИСТИКА === */
+    .stats-section {
+        background: linear-gradient(135deg, #ff6a00, #ff8c00);
+        color: white;
+        border-radius: 24px;
+        padding: 4rem 0;
+    }
+
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 2rem;
+    }
+
+    .stat-item {
+        text-align: center;
+    }
+
+    .stat-number {
+        font-size: 3rem;
+        font-weight: 800;
+        margin-bottom: 0.5rem;
+        text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+    }
+
+    .stat-label {
+        font-size: 1.1rem;
+        opacity: 0.9;
+    }
+
+    /* === АДАПТИВНОСТЬ === */
+    @media (max-width: 768px) {
+        .hero-title {
+            font-size: 2.8rem;
+        }
+        
+        .hero-subtitle {
+            font-size: 1.2rem;
+        }
+        
+        .section-title {
+            font-size: 2.2rem;
+        }
+        
+        .features-grid,
+        .categories-grid,
+        .products-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .hero-section {
+            padding: 4rem 1rem;
+        }
+    }
+</style>
+
+<!-- ГЕРОЙ-СЕКЦИЯ -->
+<section class="hero-section">
+    <div class="container">
+        <h1 class="hero-title">Создавайте свой уют вместе с нами!</h1>
+        <p class="hero-subtitle">Эксклюзивные товары, создающие неповторимую атмосферу тепла и гармонии в вашем доме</p>
+        <a href="/catalog/" class="cta-button">Открыть коллекцию</a>
+    </div>
+</section>
+
+
+
+<!-- ПОПУЛЯРНЫЕ ТОВАРЫ -->
+<section class="section products-section">
+    <div class="container">
+        <h2 class="section-title">Наши новинки</h2>
+        <div class="products-grid">
+            {% for product in featured_products %}
+            <div class="product-card">
+                <div class="product-image">
+                    {% if product.images.first %}
+                        <img src="{{ product.images.first.image.url }}" alt="{{ product.name }}" style="width: 100%; height: 100%; object-fit: cover;">
+                    {% else %}
+                        🕯️
+                    {% endif %}
+                </div>
+                <div class="product-content">
+                    <h3 class="product-title">{{ product.name }}</h3>
+                    <p class="product-description">{{ product.description|truncatewords:12 }}</p>
+                    <div class="product-price">{{ product.price }} ₽</div>
+                    <a href="{% url 'catalog:product_detail' product.slug %}" class="product-button">Подробнее</a>
+                </div>
+            </div>
+            {% empty %}
+            <div style="grid-column: 1 / -1; text-align: center; padding: 2rem;">
+                <p style="font-size: 1.2rem; color: #666;">Товары скоро появятся!</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+
+<!-- ПРЕИМУЩЕСТВА -->
+<section class="section">
+    <div class="container">
+        <h2 class="section-title">Искусство в каждой свече</h2>
+        <div class="features-grid">
+            <div class="feature-card">
+                <div class="feature-icon">🌿</div>
+                <h3 class="feature-title">100% Натуральный состав</h3>
+                <p class="feature-text">Только соевый и кокосовый воск высшего качества. Без парафина, свинца и искусственных добавок. Экологично и безопасно для здоровья</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">✨</div>
+                <h3 class="feature-title">Роскошные ароматы</h3>
+                <p class="feature-text">Композиции из натуральных эфирных масел, созданные парфюмерами. От нежных цветочных до древесных и пряных аккордов</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">🎨</div>
+                <h3 class="feature-title">Уникальный дизайн</h3>
+                <p class="feature-text">Каждая свеча - произведение искусства. Ручная роспись, эксклюзивные сосуды и индивидуальный подход к каждому заказу</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- КАТЕГОРИИ -->
+<section class="section">
+    <div class="container">
+        <h2 class="section-title">Коллекции для вашего настроения</h2>
+        <div class="categories-grid">
+            <div class="category-card">
+                <h3 class="feature-title">🌸 Ароматерапия</h3>
+                <p class="feature-text">Свечи для релаксации, медитации и создания особой атмосферы с терапевтическим эффектом</p>
+            </div>
+            <div class="category-card">
+                <h3 class="feature-title">🎁 Подарочные наборы</h3>
+                <p class="feature-text">Эксклюзивные комплекты для особых моментов с индивидуальным подходом к упаковке</p>
+            </div>
+            <div class="category-card">
+                <h3 class="feature-title">🏛️ Интерьерные</h3>
+                <p class="feature-text">Крупные свечи в дизайнерских сосудах, которые станут украшением любого интерьера</p>
+            </div>
+            
+        </div>
+    </div>
+</section>
+
+
+
+<!-- ФИНАЛЬНЫЙ CTA -->
+<section class="section">
+    <div class="container" style="text-align: center;">
+        <h2 class="section-title">Готовы преобразить свой дом?</h2>
+        <p class="hero-subtitle">Откройте мир изысканных ароматов и станьте частью нашего сообщества ценителей настоящего уюта</p>
+        <a href="/catalog/" class="cta-button">Начать покупки</a>
+    </div>
+</section>
+{% endblock %}

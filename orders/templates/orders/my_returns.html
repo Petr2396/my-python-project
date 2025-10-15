@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block title %}Мои возвраты{% endblock %}
+{% block content %}
+<h2>Мои возвраты</h2>
+
+{% if returns %}
+  <ul>
+    {% for ret in returns %}
+      <li>
+        Заказ №{{ ret.order.id }} <br>
+        Товары: 
+        {% for item in ret.items.all %}
+          {{ item.product.name }}{% if not forloop.last %}, {% endif %}
+        {% endfor %} <br>
+        Причина: {{ ret.reason }} <br>
+        Статус: <strong>{{ ret.get_status_display }}</strong> <br>
+        Дата: {{ ret.created_at|date:"d.m.Y H:i" }}
+      </li>
+    {% endfor %}
+  </ul>
+{% else %}
+  <p>У вас пока нет заявок на возврат.</p>
+{% endif %}
+{% endblock %}

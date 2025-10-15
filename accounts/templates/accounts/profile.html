@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% block title %}Мой профиль{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+  <div class="row justify-content-center">
+    <div class="col-lg-8 col-md-10">
+      <div class="card shadow-lg border-0 rounded-3">
+        <div class="card-header   text-center py-4">
+          <h3 class="mb-0">Мой профиль</h3>
+        </div>
+        <div class="card-body p-4">
+
+          <!-- Фото профиля -->
+          <div class="text-center mb-4">
+            {% if profile.avatar %}
+              <img src="{{ profile.avatar.url }}" alt="Аватар" class="rounded-circle shadow" style="width: 120px; height: 120px; object-fit: cover;">
+            {% else %}
+              <i class="fa-solid fa-circle-user text-secondary" style="font-size: 120px;"></i>
+            {% endif %}
+          </div>
+
+          <!-- Основная информация -->
+          <dl class="row mb-4">
+            <dt class="col-sm-4 text-muted">Имя:</dt>
+            <dd class="col-sm-8">{{ user.first_name|default:"—" }}</dd>
+
+            <dt class="col-sm-4 text-muted">Фамилия:</dt>
+            <dd class="col-sm-8">{{ user.last_name|default:"—" }}</dd>
+
+            <dt class="col-sm-4 text-muted">Email:</dt>
+            <dd class="col-sm-8">{{ user.email }}</dd>
+
+            <dt class="col-sm-4 text-muted">Телефон:</dt>
+            <dd class="col-sm-8">{{ profile.phone|default:"—" }}</dd>
+
+            <dt class="col-sm-4 text-muted">Адрес:</dt>
+            <dd class="col-sm-8">{{ profile.address|default:"—" }}</dd>
+          </dl>
+
+          <!-- Кнопки действий -->
+          <div class="d-flex justify-content-center gap-3">
+            <a href="{% url 'orders:my_orders' %}" class="btn btn-outline-primary">
+              <i class="fa-solid fa-box"></i> Мои заказы
+            </a>
+            <a href="{% url 'accounts:edit_profile' %}" class="btn btn-outline-secondary">
+                <i class="fa-solid fa-pen"></i> Редактировать профиль
+              </a>
+          </div>
+
+        </div>
+        <div class="card-footer text-center text-muted small py-3">
+          Последний вход: {{ user.last_login|date:"d.m.Y H:i" }}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

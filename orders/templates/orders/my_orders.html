@@ -1,0 +1,308 @@
+{% extends "base.html" %}
+{% block title %}Мои заказы{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Мои заказы</h2>
+
+    <ul class="nav nav-tabs" id="ordersTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="active-tab" data-bs-toggle="tab" data-bs-target="#active" type="button">
+                Текущие
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="archived-tab" data-bs-toggle="tab" data-bs-target="#archived" type="button">
+                Архивные
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="returns-tab" data-bs-toggle="tab" data-bs-target="#returns" type="button">
+                Возвраты
+            </button>
+        </li>
+    </ul>
+
+    <div class="tab-content mt-3" id="ordersTabsContent">
+        <!-- 🔹 Текущие заказы -->
+        <div class="tab-pane fade show active" id="active" role="tabpanel">
+            {% if active_orders %}
+                {% for order in active_orders %}
+                    <div class="card mb-3 order-card">
+                        <div class="card-header">
+                            Заказ №{{ order.id }} от {{ order.created|date:"d.m.Y H:i" }}
+                            <span class="badge 
+                                {% if order.status == 'new' %} bg-primary
+                                {% elif order.status == 'processing' %} bg-info text-dark
+                                {% elif order.status == 'shipped' %} bg-warning text-dark
+                                {% endif %}">
+                                {{ order.get_status_display }}
+                            </span>
+                        </div>
+                        <div class="card-body">
+                            <ul>
+                                {% for item in order.items.all %}
+                                    <li>{{ item.product.name }} — {{ item.quantity }} × {{ item.price }} ₽ = {{ item.get_cost }} ₽</li>
+                                {% endfor %}
+                            </ul>
+
+                            <!-- Итог -->
+                            <div class="order-summary mt-3 p-3 bg-light rounded">
+                                <div class="d-flex justify-content-between">
+                                    <span>Общая стоимость:</span>
+                                    <span>{{ order.get_total_cost }} ₽</span>
+                                </div>
+
+                                {% if order.discount %}
+                                <div class="d-flex justify-content-between text-success">
+                                    <span>Скидка ({{ order.discount }}%):</span>
+                                    <span>-{{ order.get_discount_amount }} ₽</span>
+                                </div>
+                                {% endif %}
+
+                                <div class="d-flex justify-content-between total fw-bold mt-2 pt-2 border-top">
+                                    <span>Итого:</span>
+                                    <span>
+                                        {% if order.total_with_discount %}
+                                            {{ order.total_with_discount }} ₽
+                                        {% else %}
+                                            {{ order.get_total_cost }} ₽
+                                        {% endif %}
+                                    </span>
+                                </div>
+                            </div>
+
+                            {% if order.status == "new" or order.status == "processing" %}
+                            <form method="post" action="{% url 'orders:cancel_order' order.id %}" class="mt-3">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-danger btn-sm">Отменить заказ</button>
+                            </form>
+                            {% endif %}
+                        </div>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <p>Нет активных заказов.</p>
+            {% endif %}
+        </div>
+
+        <!-- 🔹 Архивные заказы -->
+        <div class="tab-pane fade" id="archived" role="tabpanel">
+            {% if archived_orders %}
+                {% for order in archived_orders %}
+                    <div class="card mb-3 border-secondary order-card">
+                        <div class="card-header">
+                            Заказ №{{ order.id }} от {{ order.created|date:"d.m.Y H:i" }}
+                            <span class="badge 
+                                {% if order.status == 'delivered' %} bg-success
+                                {% elif order.status == 'canceled' %} bg-danger
+                                {% endif %}">
+                                {{ order.get_status_display }}
+                            </span>
+                        </div>
+                        <div class="card-body">
+                            <ul>
+                                {% for item in order.items.all %}
+                                    <li>{{ item.product.name }} — {{ item.quantity }} × {{ item.price }} ₽ = {{ item.get_cost }} ₽</li>
+                                {% endfor %}
+                            </ul>
+
+                            <div class="order-summary mt-3 p-3 bg-light rounded">
+                                <div class="d-flex justify-content-between">
+                                    <span>Общая стоимость:</span>
+                                    <span>{{ order.get_total_cost }} ₽</span>
+                                </div>
+
+                                {% if order.discount %}
+                                <div class="d-flex justify-content-between text-success">
+                                    <span>Скидка ({{ order.discount }}%):</span>
+                                    <span>-{{ order.get_discount_amount }} ₽</span>
+                                </div>
+                                {% endif %}
+
+                                <div class="d-flex justify-content-between total fw-bold mt-2 pt-2 border-top">
+                                    <span>Итого:</span>
+                                    <span>
+                                        {% if order.total_with_discount %}
+                                            {{ order.total_with_discount }} ₽
+                                        {% else %}
+                                            {{ order.get_total_cost }} ₽
+                                        {% endif %}
+                                    </span>
+                                </div>
+
+                                <!-- 🔹 КНОПКА ВОЗВРАТА С ПРОВЕРКОЙ -->
+                                {% if order.is_paid and order.status == "delivered" %}
+    {% if order.can_create_return %}
+        <a href="{% url 'orders:return_request' order.id %}" 
+           class="btn btn-warning btn-sm mt-2">↶ Вернуть товар</a>
+    {% else %}
+        {% if order.has_return_request %}
+            <button class="btn btn-secondary btn-sm mt-2" disabled>
+                ⏳ Возврат уже оформлен
+            </button>
+        {% else %}
+            <button class="btn btn-secondary btn-sm mt-2" disabled>
+                ⏳ Срок возврата истек
+            </button>
+        {% endif %}
+    {% endif %}
+{% endif %}
+
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <p>Нет архивных заказов.</p>
+            {% endif %}
+        </div>
+
+        <!-- 🔹 Возвраты -->
+        <div class="tab-pane fade" id="returns" role="tabpanel">
+            {% if returns %}
+                {% for ret in returns %}
+                    <div class="card mb-3 border-info order-card">
+                        <div class="card-header">
+                            Возврат по заказу №{{ ret.order.id }}
+                            <span class="badge 
+                                {% if ret.status == 'pending' %} bg-warning text-dark
+                                {% elif ret.status == 'approved' %} bg-success
+                                {% elif ret.status == 'rejected' %} bg-danger
+                                {% endif %}">
+                                {{ ret.get_status_display }}
+                            </span>
+                        </div>
+                        <div class="card-body">
+                            <p><strong>Причина:</strong> {{ ret.reason }}</p>
+                            {% if ret.photo %}
+                                <p><img src="{{ ret.photo.url }}" alt="Фото" class="img-thumbnail" style="max-width:200px;"></p>
+                            {% endif %}
+                            <p><strong>Товары:</strong>
+                                {% for item in ret.items.all %}
+                                    {{ item.product.name }}{% if not forloop.last %}, {% endif %}
+                                {% endfor %}
+                            </p>
+                            <p><small>Заявка создана: {{ ret.created_at|date:"d.m.Y H:i" }}</small></p>
+                        </div>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <p>У вас пока нет возвратов.</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<style>
+.order-card { border-radius: 12px; overflow: hidden; }
+.order-summary { background: #f8f9fa; border: 1px solid #e9ecef; }
+.summary-row.total { font-size: 18px; color: #ff6a00; }
+
+/* Стили для неактивных кнопок */
+.btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+.btn-secondary {
+    background-color: #f8f9fa;
+    border-color: #dee2e6;
+    color: #6c757d;
+}
+</style>
+{% endblock %}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,210 @@
+{% extends "base.html" %}
+
+{% block title %}Оформление заказа{% endblock %}
+
+{% block content %}
+<div class="checkout-wrapper">
+  <h2 class="checkout-title">Оформление заказа</h2>
+
+  <form method="post" class="checkout-form">
+    {% csrf_token %}
+    <div class="form-fields">
+      {{ form.as_p }}
+    </div>
+
+    <h3 class="cart-title">Товары в заказе</h3>
+    <ul class="cart-items">
+      {% for item in cart %}
+        <li class="cart-item">
+          <span class="product-name">{{ item.product.name }}</span>
+          <span class="product-qty">{{ item.quantity }} × {{ item.price }} ₽</span>
+          <span class="product-total">{{ item.total_price }} ₽</span>
+        </li>
+      {% endfor %}
+    </ul>
+
+    <!-- БЛОК С ИТОГАМИ И СКИДКОЙ -->
+    <div class="order-summary">
+      <div class="summary-row">
+        <span>Общая стоимость:</span>
+        <span>{{ cart.get_total_price }} ₽</span>
+      </div>
+      
+      {% if discount %}
+      <div class="summary-row discount">
+        <span>Скидка по промокоду ({{ discount }}%):</span>
+        <span>-{{ cart.get_total_price|floatformat:2|add:"0"|add:total_with_discount|floatformat:2 }} ₽</span>
+      </div>
+      {% endif %}
+      
+      <div class="summary-row total">
+        <span><strong>Итого к оплате:</strong></span>
+        <span><strong>{{ total_with_discount }} ₽</strong></span>
+      </div>
+
+      {% if cart.promo_code %}
+      <div class="promo-applied">
+        ✅ Применен промокод: <strong>{{ cart.promo_code.code }}</strong>
+      </div>
+      {% endif %}
+    </div>
+
+    <button type="submit" class="btn-submit">Подтвердить заказ</button>
+    <p style="font-size:12px; color:#555; margin-top:10px; line-height:1.4; white-space:normal;">
+      Нажимая на кнопку «Подтвердить заказ», вы соглашаетесь с 
+      <a href="#" style="display:inline !important; color:#007bff; text-decoration:none;">Политикой конфиденциальности</a>, 
+      <a href="#" style="display:inline !important; color:#007bff; text-decoration:none;">Пользовательским соглашением (офертой)</a> 
+      и условиями обработки персональных данных.
+    </p>
+  </form>
+</div>
+
+<style>
+/* Контейнер */
+.checkout-wrapper {
+  max-width: 720px;
+  margin: 30px auto;
+  padding: 26px;
+  border-radius: 12px;
+  background: #fff;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.06);
+  font-family: "Segoe UI", sans-serif;
+}
+
+/* Заголовки */
+.checkout-title {
+  font-size: 24px;
+  font-weight: 700;
+  margin-bottom: 20px;
+}
+.cart-title {
+  margin-top: 28px;
+  font-size: 20px;
+  font-weight: 600;
+  margin-bottom: 12px;
+}
+
+/* Поля формы */
+.checkout-form p {
+  margin-bottom: 14px;
+  display: flex;
+  flex-direction: column;
+}
+.checkout-form label {
+  font-weight: 600;
+  margin-bottom: 6px;
+  color: #333;
+  font-size: 14px;
+}
+.checkout-form input,
+.checkout-form select,
+.checkout-form textarea {
+  padding: 10px 12px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-size: 14px;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+.checkout-form input:focus,
+.checkout-form select:focus,
+.checkout-form textarea:focus {
+  border-color: #ff7a00;
+  outline: none;
+  box-shadow: 0 0 0 4px rgba(255, 122, 0, 0.15);
+}
+
+/* Список товаров */
+.cart-items {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  border: 1px solid #eee;
+  border-radius: 8px;
+  overflow: hidden;
+}
+.cart-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 14px;
+  border-bottom: 1px solid #f1f1f1;
+  font-size: 15px;
+}
+.cart-item:last-child {
+  border-bottom: none;
+}
+.product-name {
+  flex: 1;
+  font-weight: 500;
+}
+.product-qty {
+  margin: 0 12px;
+  color: #666;
+  font-size: 14px;
+}
+.product-total {
+  font-weight: 600;
+  color: #ff5a00;
+}
+
+/* Блок с итогами */
+.order-summary {
+  margin: 20px 0;
+  padding: 15px;
+  background: #f9f9f9;
+  border-radius: 8px;
+  border: 1px solid #eee;
+}
+
+.summary-row {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 8px;
+  padding: 5px 0;
+}
+
+.summary-row.discount {
+  color: #28a745;
+  font-weight: 500;
+}
+
+.summary-row.total {
+  border-top: 2px solid #ff7a00;
+  padding-top: 10px;
+  margin-top: 10px;
+  font-size: 18px;
+}
+
+.promo-applied {
+  margin-top: 10px;
+  padding: 8px;
+  background: #d4edda;
+  border: 1px solid #c3e6cb;
+  border-radius: 4px;
+  color: #155724;
+  font-size: 14px;
+}
+
+/* Кнопка */
+.btn-submit {
+  margin-top: 20px;
+  width: 100%;
+  padding: 12px;
+  font-size: 16px;
+  font-weight: 700;
+  border: none;
+  border-radius: 10px;
+  background: linear-gradient(90deg, #ff8c00, #ff5a00);
+  color: #fff;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+.btn-submit:hover {
+  opacity: 0.9;
+}
+
+
+
+</style>
+{% endblock %}
+

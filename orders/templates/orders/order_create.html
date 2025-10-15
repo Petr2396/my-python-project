@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+{% block title %}Оформление заказа{% endblock %}
+
+{% block content %}
+<div class="checkout-container">
+  <h1 class="mb-3">Оформление заказа</h1>
+
+  <form method="post" class="checkout-form">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit" class="btn btn-success btn-submit">Подтвердить заказ</button>
+    <p style="font-size: 12px; color: #555; margin-top: 10px;">
+      Нажимая на кнопку «Подтвердить заказ», вы соглашаетесь с 
+      <a href="{% url 'privacy_policy' %}" target="_blank">Политикой конфиденциальности</a>, 
+      <a href="{% url 'offer' %}" target="_blank">Пользовательским соглашением (офертой)</a> 
+      и условиями обработки персональных данных.
+    </p>
+  </form>
+</div>
+
+<style>
+/* Контейнер */
+.checkout-container{
+  max-width:520px;
+  margin:30px auto;
+  padding:26px;
+  border-radius:12px;
+  background:#fff;
+  box-shadow:0 6px 18px rgba(0,0,0,0.06);
+}
+
+/* Преобразуем p от form.as_p в аккуратные строки */
+.checkout-form p {
+  margin-bottom:14px;
+  display:flex;
+  flex-direction:column;
+}
+
+/* Лейбл */
+.checkout-form label {
+  font-weight:600;
+  margin-bottom:6px;
+  color:#333;
+  font-size:14px;
+}
+
+/* Поля */
+.checkout-form input,
+.checkout-form textarea,
+.checkout-form select {
+  padding:10px 12px;
+  border:1px solid #e6e6e6;
+  border-radius:8px;
+  font-size:14px;
+  transition:box-shadow .18s, border-color .18s;
+  width:100%;
+  box-sizing:border-box;
+}
+
+/* фокус */
+.checkout-form input:focus,
+.checkout-form textarea:focus,
+.checkout-form select:focus {
+  outline:none;
+  border-color: #ff7a00; /* оранжево-жёлтый акцент */
+  box-shadow: 0 0 0 6px rgba(255,122,0,0.08);
+}
+
+/* Кнопка */
+.btn-submit {
+  margin-top:8px;
+  width:100%;
+  padding:11px;
+  border-radius:10px;
+  background: linear-gradient(90deg,#ff8c00,#ff5a00);
+  border:none;
+  color:#fff;
+  font-weight:700;
+  font-size:15px;
+}
+
+/* Ошибки */
+.checkout-form .errorlist {
+  color:#b00020;
+  margin:4px 0 0;
+  font-size:13px;
+}
+</style>
+{% endblock %}

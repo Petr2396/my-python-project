@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Спасибо за заказ{% endblock %}
+
+{% block content %}
+<h1>Спасибо за заказ!</h1>
+<p>Ваш номер заказа: {{ order.id }}</p>
+<p>Мы отправим подтверждение на {{ order.email }}</p>
+<a href="{% url 'catalog:product_list' %}">← Вернуться в каталог</a>
+{% endblock %}

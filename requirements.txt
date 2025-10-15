@@ -1,0 +1,10 @@
+Django==5.1.1            # основной фреймворк
+psycopg2-binary==2.9.9   # драйвер PostgreSQL
+django-environ==0.11.2   # работа с env-переменными
+gunicorn==23.0.0         # сервер для production
+whitenoise==6.6.0        # статика в prod (если без CDN)
+django-storages==1.14.2  # для S3-хранилища
+boto3==1.35.20           # клиент AWS S3
+stripe==10.0.0           # интеграция платежей Stripe
+celery==5.4.0            # асинхронные задачи
+redis==5.0.8             # клиент Redis

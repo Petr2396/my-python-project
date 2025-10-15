@@ -1,0 +1,198 @@
+{% extends "base.html" %}
+{% block title %}Каталог{% endblock %}
+{% block content %}
+
+<style>
+    .categories-nav {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-bottom: 25px;
+        padding: 12px;
+        
+        border-radius: 12px;
+        border: 1px solid #000000;
+    }
+    
+    .category-btn {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        padding: 8px 16px;
+        border: 1.5px solid transparent;
+        border-radius: 10px;
+        background: white;
+        color: #555;
+        text-decoration: none;
+        font-weight: 500;
+        font-size: 14px;
+        transition: all 0.2s ease;
+        box-shadow: 0 1px 4px rgba(255, 165, 0, 0.08);
+        white-space: nowrap;
+    }
+    
+    .category-btn:hover,
+    .category-btn.active {
+        background: linear-gradient(135deg, #ff6a00 0%, #ff8c00 100%);
+        color: white;
+        border-color: #ff6a00;
+        transform: translateY(-1px);
+        box-shadow: 0 3px 10px rgba(255, 106, 0, 0.2);
+    }
+    
+    .category-btn.active {
+        font-weight: 600;
+    }
+    
+    .clear-filter {
+        margin-left: auto;
+        align-self: center;
+        color: #ff6a00;
+        text-decoration: none;
+        font-weight: 500;
+        font-size: 13px;
+        padding: 6px 12px;
+        border-radius: 15px;
+        background: rgba(255, 106, 0, 0.1);
+        transition: all 0.2s ease;
+    }
+    
+    .clear-filter:hover {
+        background: rgba(255, 106, 0, 0.2);
+        text-decoration: none;
+        color: #ff4500;
+    }
+    
+    /* Адаптивность для мобильных */
+    @media (max-width: 768px) {
+        .categories-nav {
+            gap: 6px;
+            padding: 10px;
+        }
+        
+        .category-btn {
+            padding: 6px 12px;
+            font-size: 13px;
+        }
+        
+        .clear-filter {
+            font-size: 12px;
+            padding: 5px 10px;
+            margin-left: 0;
+            width: 100%;
+            text-align: center;
+            margin-top: 10px;
+        }
+    }
+</style>
+
+<!-- Панель категорий -->
+<div class="categories-nav">
+    {% for cat in categories %}
+        <a href="?category={{ cat.slug }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}" 
+           class="category-btn {% if current_category and current_category.slug == cat.slug %}active{% endif %}">
+            {% if cat.icon %}{{ cat.icon }}{% endif %}
+            {{ cat.name }}
+        </a>
+    {% endfor %}
+    
+    {% if current_category or request.GET.q %}
+        <a href="{% url 'catalog:product_list' %}" class="clear-filter">
+            ✕ Сбросить фильтры
+        </a>
+    {% endif %}
+</div>
+
+<!-- Остальной код остается без изменений -->
+<input id="searchInput"
+       type="text"
+       value="{{ request.GET.q }}"
+       placeholder="Поиск по названию или описанию..."
+       style="
+          width: 100%;
+          max-width: 320px;
+          padding: 10px 36px 10px 14px;
+          border: 2px solid #ddd;
+          border-radius: 25px;
+          margin-bottom: 20px;
+          font-size: 15px;
+          outline: none;
+          transition: all 0.25s ease;
+          box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+          background: #fff url('https://cdn-icons-png.flaticon.com/512/622/622669.png') no-repeat right 12px center / 18px;
+       "
+>
+
+<!-- Контейнер со всеми товарами -->
+<div id="productsContainer">
+  <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 g-4">
+      {% for product in products %}
+      <div class="col">
+          <div class="card h-100 shadow-sm">
+              {% if product.images.first %}
+                  <img src="{{ product.images.first.image.url }}" class="card-img-top" alt="{{ product.name }}" style="height: 180px; object-fit: cover;">
+              {% else %}
+                  <img src="https://via.placeholder.com/300x180.png?text=Нет+фото" class="card-img-top" alt="{{ product.name }}">
+              {% endif %}
+              <div class="card-body d-flex flex-column">
+                  <h5 class="card-title">{{ product.name }}</h5>
+                  {% if product.category %}
+                      <small class="text-muted">{{ product.category.name }}</small>
+                  {% endif %}
+                  <p class="card-text fw-bold mt-2">{{ product.price }} ₽</p>
+                  <div class="mt-auto d-flex justify-content-between">
+                      <a href="{% url 'catalog:product_detail' product.slug %}" class="butn">Подробнее</a>
+                      <form method="post" action="{% url 'orders:cart_add' product.id %}">
+                          {% csrf_token %}
+                          <button type="submit" class="btn"><i class="fa-solid fa-cart-shopping"></i></button>
+                      </form>
+                  </div>
+              </div>
+          </div>
+      </div>
+      {% empty %}
+          <p class="text-center py-5">Товары не найдены.</p>
+      {% endfor %}
+  </div>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+  const input = document.getElementById("searchInput");
+  const container = document.getElementById("productsContainer");
+
+  let timer = null;
+  input.addEventListener("input", function () {
+    clearTimeout(timer);
+    timer = setTimeout(() => {
+      const q = input.value.trim();
+      const url = new URL(window.location.href);
+      
+      // Сохраняем текущую категорию при поиске
+      const currentCategory = new URLSearchParams(window.location.search).get('category');
+      
+      if (q) {
+        url.searchParams.set("q", q);
+      } else {
+        url.searchParams.delete("q");
+      }
+      
+      // Сохраняем параметр категории
+      if (currentCategory) {
+        url.searchParams.set("category", currentCategory);
+      }
+
+      fetch(url)
+        .then(res => res.text())
+        .then(html => {
+          const parser = new DOMParser();
+          const doc = parser.parseFromString(html, "text/html");
+          const newContent = doc.querySelector("#productsContainer").innerHTML;
+          container.innerHTML = newContent;
+        });
+    }, 300);
+  });
+});
+</script>
+
+{% endblock %}
